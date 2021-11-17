@@ -151,8 +151,12 @@ public class NetworkedServer : MonoBehaviour
             {
                 GameSession gs = new GameSession(playerLookingForMatch, id);
                 gameSessionList.AddLast(gs);
+                //Player 1
                 SendMessageToClient(ServerToClientSignifiers.GameSessionStarted + "", id);
+                SendMessageToClient(ServerToClientSignifiers.GameResponses + "," + GameResponses.playerOne, id);
+                //Player 2
                 SendMessageToClient(ServerToClientSignifiers.GameSessionStarted + "", playerLookingForMatch);
+                SendMessageToClient(ServerToClientSignifiers.GameResponses + "," + GameResponses.playerTwo, playerLookingForMatch);
 
 
 
@@ -253,10 +257,12 @@ public static class ClientToServerSignifiers
 public static class ServerToClientSignifiers
 {
     public const int LoginResponses = 1;
-    
+
     public const int GameSessionStarted = 2;
 
     public const int OppnentTicTacToePlay = 3;
+
+    public const int GameResponses = 4;
 
 }
 
@@ -269,4 +275,13 @@ public static class LoginResponses
     public const int FailureNameNotFound = 3;
 
     public const int FailureIncorrectPassword = 4;
+}
+
+public static class GameResponses
+{
+    public const int playerOne = 1;
+
+    public const int playerTwo = 2;
+
+    public const int observer = 3;
 }
