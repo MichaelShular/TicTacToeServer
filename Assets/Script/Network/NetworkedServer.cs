@@ -178,6 +178,19 @@ public class NetworkedServer : MonoBehaviour
             }
 
         }
+        else if (signifier == ClientToServerSignifiers.messagingAnotherPlayer)
+        {
+            GameSession gs = FindGameSessionWithPlayersID(id);
+
+            if (gs.playerID1 == id)
+            {
+                SendMessageToClient(ServerToClientSignifiers.messagingAnotherPlayer + "," + csv[1], gs.playerID2);
+            }
+            else
+            {
+                SendMessageToClient(ServerToClientSignifiers.messagingAnotherPlayer + "," + csv[1], gs.playerID1);
+            }
+        }
     }
 
     private void SavePlayerAccount()
@@ -252,6 +265,9 @@ public static class ClientToServerSignifiers
     public const int StartLookingForPlayer = 3;
 
     public const int TicTacToeMove = 4;
+
+    public const int messagingAnotherPlayer = 5;
+
 }
 
 public static class ServerToClientSignifiers
@@ -263,6 +279,8 @@ public static class ServerToClientSignifiers
     public const int OppnentTicTacToePlay = 3;
 
     public const int GameResponses = 4;
+
+    public const int messagingAnotherPlayer = 5;
 
 }
 
