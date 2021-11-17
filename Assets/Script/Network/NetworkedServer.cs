@@ -157,7 +157,7 @@ public class NetworkedServer : MonoBehaviour
                 //Player 2
                 SendMessageToClient(ServerToClientSignifiers.GameSessionStarted + "", playerLookingForMatch);
                 SendMessageToClient(ServerToClientSignifiers.GameResponses + "," + GameResponses.playerTwo, playerLookingForMatch);
-
+              
 
 
                 playerLookingForMatch = -1;
@@ -177,6 +177,14 @@ public class NetworkedServer : MonoBehaviour
                 SendMessageToClient(ServerToClientSignifiers.OppnentTicTacToePlay + "", gs.playerID1);
             }
 
+            if(gs.observerID.Count > 0)
+            {
+                foreach (int obsID in gs.observerID)
+                {
+                    SendMessageToClient(ServerToClientSignifiers.OppnentTicTacToePlay + "", obsID);
+                }
+            }
+
         }
         else if (signifier == ClientToServerSignifiers.messagingAnotherPlayer)
         {
@@ -189,6 +197,19 @@ public class NetworkedServer : MonoBehaviour
             else
             {
                 SendMessageToClient(ServerToClientSignifiers.messagingAnotherPlayer + "," + csv[1], gs.playerID1);
+            }
+        }
+        else if (signifier == ClientToServerSignifiers.lookForGameToWatch)
+        {
+            GameSession gs = FindGameSessionWithPlayersID(int.Parse(csv[1]));
+            if(gs != null)
+            {
+                SendMessageToClient(ServerToClientSignifiers.lookforGameResponses + "," + lookforGameResponses.Success, id);
+                gs.addObserver(id);
+            }
+            else
+            {
+                SendMessageToClient(ServerToClientSignifiers.lookforGameResponses + "," + lookforGameResponses.Fail, id);
             }
         }
     }
@@ -248,11 +269,18 @@ public class PlayerAccount
 public class GameSession
 {
     public int playerID1, playerID2;
-
+    public List<int> observerID;
+    
     public GameSession(int ID1, int ID2)
     {
         playerID1 = ID1;
         playerID2 = ID2;
+
+        observerID = new List<int>();
+    }
+    public void addObserver(int IDObs)
+    {
+        observerID.Add(IDObs);
     }
 }
 
@@ -268,6 +296,8 @@ public static class ClientToServerSignifiers
 
     public const int messagingAnotherPlayer = 5;
 
+    public const int lookForGameToWatch = 6;
+
 }
 
 public static class ServerToClientSignifiers
@@ -282,6 +312,8 @@ public static class ServerToClientSignifiers
 
     public const int messagingAnotherPlayer = 5;
 
+    public const int lookforGameResponses = 6;
+
 }
 
 public static class LoginResponses
@@ -294,6 +326,15 @@ public static class LoginResponses
 
     public const int FailureIncorrectPassword = 4;
 }
+
+public static class lookforGameResponses
+{
+    public const int Success = 1;
+
+    public const int Fail = 2;
+
+}
+
 
 public static class GameResponses
 {
