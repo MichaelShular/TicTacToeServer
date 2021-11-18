@@ -151,12 +151,12 @@ public class NetworkedServer : MonoBehaviour
             {
                 GameSession gs = new GameSession(playerLookingForMatch, id);
                 gameSessionList.AddLast(gs);
-                //Player 1
-                SendMessageToClient(ServerToClientSignifiers.GameSessionStarted + "", id);
-                SendMessageToClient(ServerToClientSignifiers.GameResponses + "," + GameResponses.playerOne, id);
                 //Player 2
+                SendMessageToClient(ServerToClientSignifiers.GameSessionStarted + "", id);
+                SendMessageToClient(ServerToClientSignifiers.GameResponses + "," + GameResponses.playerTwo, id);
+                //Player 1
                 SendMessageToClient(ServerToClientSignifiers.GameSessionStarted + "", playerLookingForMatch);
-                SendMessageToClient(ServerToClientSignifiers.GameResponses + "," + GameResponses.playerTwo, playerLookingForMatch);
+                SendMessageToClient(ServerToClientSignifiers.GameResponses + "," + GameResponses.playerOne, playerLookingForMatch);
               
 
 
@@ -167,21 +167,25 @@ public class NetworkedServer : MonoBehaviour
         else if (signifier == ClientToServerSignifiers.TicTacToeMove)
         {
             GameSession gs = FindGameSessionWithPlayersID(id);
-
+            int temp = 0;
             if(gs.playerID1 == id)
             {
-                SendMessageToClient(ServerToClientSignifiers.OppnentTicTacToePlay + "", gs.playerID2);
+                Debug.Log(int.Parse(csv[2]));
+                SendMessageToClient(ServerToClientSignifiers.OppnentTicTacToePlay + "," + int.Parse(csv[1]) + "," + int.Parse(csv[2]) + "," + GameResponses.playerOne, gs.playerID2);
+                temp = GameResponses.playerOne;
             }
-            else
+            else if(gs.playerID2 == id)
             {
-                SendMessageToClient(ServerToClientSignifiers.OppnentTicTacToePlay + "", gs.playerID1);
+                Debug.Log(int.Parse(csv[2]));
+                SendMessageToClient(ServerToClientSignifiers.OppnentTicTacToePlay + "," + int.Parse(csv[1]) + "," + int.Parse(csv[2]) + "," + GameResponses.playerTwo, gs.playerID1);
+                temp = GameResponses.playerTwo;
             }
 
-            if(gs.observerID.Count > 0)
+            if (gs.observerID.Count > 0)
             {
                 foreach (int obsID in gs.observerID)
                 {
-                    SendMessageToClient(ServerToClientSignifiers.OppnentTicTacToePlay + "", obsID);
+                    SendMessageToClient(ServerToClientSignifiers.OppnentTicTacToePlay + "," + int.Parse(csv[1]) + "," + int.Parse(csv[2]) + "," + temp, obsID);
                 }
             }
 
@@ -338,9 +342,10 @@ public static class lookforGameResponses
 
 public static class GameResponses
 {
+    public const int observer = 0;
+    
     public const int playerOne = 1;
 
     public const int playerTwo = 2;
 
-    public const int observer = 3;
 }
