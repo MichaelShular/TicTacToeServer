@@ -16,6 +16,8 @@ public class NetworkedServer : MonoBehaviour
 
     LinkedList<PlayerAccount> playerAccount;
     string playerAccountFilePath;
+    string gameAccountFilePath;
+
 
     int playerLookingForMatch = -1;
 
@@ -25,6 +27,8 @@ public class NetworkedServer : MonoBehaviour
     void Start()
     {
         playerAccountFilePath = Application.dataPath + Path.DirectorySeparatorChar + "PlayerAccountData.txt";
+        gameAccountFilePath = Application.dataPath + Path.DirectorySeparatorChar + "GameAccountData.txt";
+
 
         NetworkTransport.Init();
         ConnectionConfig config = new ConnectionConfig();
@@ -149,7 +153,8 @@ public class NetworkedServer : MonoBehaviour
             }
             else
             {
-                GameSession gs = new GameSession(playerLookingForMatch, id);
+                Debug.Log(findUniqueGameID());
+                GameSession gs = new GameSession(playerLookingForMatch, id, findUniqueGameID());
                 gameSessionList.AddLast(gs);
                 //Player 2
                 SendMessageToClient(ServerToClientSignifiers.GameSessionStarted + "", id);
@@ -166,12 +171,19 @@ public class NetworkedServer : MonoBehaviour
         }
         else if (signifier == ClientToServerSignifiers.TicTacToeMove)
         {
+            
             GameSession gs = FindGameSessionWithPlayersID(id);
+            if(gs == null)
+            {
+                Debug.Log("No Game Session Found " + gameSessionList.Count);
+                return;
+            }
             int temp = 0;
             if(gs.playerID1 == id)
             {
                 //Debug.Log(int.Parse(csv[2]));
                 SendMessageToClient(ServerToClientSignifiers.OppnentTicTacToePlay + "," + int.Parse(csv[1]) + "," + int.Parse(csv[2]) + "," + GameResponses.playerOne, gs.playerID2);
+                gs.currentGameRecord.turnAndMove.Add(csv[2]);
                 temp = GameResponses.playerOne;
             }
             else if(gs.playerID2 == id)
@@ -179,6 +191,7 @@ public class NetworkedServer : MonoBehaviour
                 //Debug.Log(int.Parse(csv[2]));
                 SendMessageToClient(ServerToClientSignifiers.OppnentTicTacToePlay + "," + int.Parse(csv[1]) + "," + int.Parse(csv[2]) + "," + GameResponses.playerTwo, gs.playerID1);
                 temp = GameResponses.playerTwo;
+                gs.currentGameRecord.turnAndMove.Add(csv[2]);
             }
 
             if (gs.observerID.Count > 0)
@@ -234,6 +247,7 @@ public class NetworkedServer : MonoBehaviour
                     SendMessageToClient(ServerToClientSignifiers.matchIsOver + "," + int.Parse(csv[1]), obsID);
                 }
             }
+            SaveGame(gs);
             gameSessionList.Remove(gs);
         }
     }
@@ -265,6 +279,65 @@ public class NetworkedServer : MonoBehaviour
             }
         }
     }
+    private void SaveGame(GameSession currentGame)
+    {
+        StreamWriter sw = new StreamWriter(gameAccountFilePath, true);
+        string saveData, saveDataTwo;
+
+        //gameID,turn,move,turn2,move2...
+        saveData = currentGame.currentGameRecord.gameID;
+        saveDataTwo = "";
+        for (int i = 0; i < currentGame.currentGameRecord.turnAndMove.Count; i++)
+        {
+            saveDataTwo = saveDataTwo + currentGame.currentGameRecord.turnAndMove[i] + ",";
+        }
+        sw.WriteLine(saveData + "," + saveDataTwo);
+        sw.Close();
+    }
+
+    private int findUniqueGameID()
+    {
+        if (File.Exists(playerAccountFilePath))
+        {
+            StreamReader sr = new StreamReader(gameAccountFilePath);
+            int lastLine = 0;
+            string line;
+            while ((line = sr.ReadLine()) != null)
+            {
+                lastLine++;
+            }
+            return (lastLine + 1);
+        }
+        return 1;
+    }
+    private gameRecord LoadGame(string ID)
+    {
+        gameRecord temp;
+        if (File.Exists(playerAccountFilePath))
+        {
+            StreamReader sr = new StreamReader(gameAccountFilePath);
+
+            string line;
+            while ((line = sr.ReadLine()) != null)
+            {
+                string[] csv = line.Split(',');
+
+                if(csv[0] == ID)
+                {
+                    temp = new gameRecord(ID);
+                    for (int i = 1; i < (csv.Length - 1); i++)
+                    {
+                        Debug.Log(csv[i]);
+                        temp.turnAndMove.Add(csv[i]);
+                    }                    
+                    return temp;
+                }                
+            }
+        }
+        return null;
+    }
+
+
 
     private GameSession FindGameSessionWithPlayersID(int id)
     {
@@ -290,15 +363,27 @@ public class PlayerAccount
     }
 }
 
+public class gameRecord
+{
+    public string gameID;
+    public List<string> turnAndMove;
+    public gameRecord(string GameID)
+    {
+        gameID = GameID;
+        turnAndMove = new List<string>();
+    }
+}
+
 public class GameSession
 {
     public int playerID1, playerID2;
     public List<int> observerID;
-    
-    public GameSession(int ID1, int ID2)
+    public gameRecord currentGameRecord;
+    public GameSession(int ID1, int ID2, int gameID)
     {
         playerID1 = ID1;
         playerID2 = ID2;
+        currentGameRecord = new gameRecord(gameID.ToString());
 
         observerID = new List<int>();
     }
