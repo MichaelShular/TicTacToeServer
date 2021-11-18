@@ -170,13 +170,13 @@ public class NetworkedServer : MonoBehaviour
             int temp = 0;
             if(gs.playerID1 == id)
             {
-                Debug.Log(int.Parse(csv[2]));
+                //Debug.Log(int.Parse(csv[2]));
                 SendMessageToClient(ServerToClientSignifiers.OppnentTicTacToePlay + "," + int.Parse(csv[1]) + "," + int.Parse(csv[2]) + "," + GameResponses.playerOne, gs.playerID2);
                 temp = GameResponses.playerOne;
             }
             else if(gs.playerID2 == id)
             {
-                Debug.Log(int.Parse(csv[2]));
+                //Debug.Log(int.Parse(csv[2]));
                 SendMessageToClient(ServerToClientSignifiers.OppnentTicTacToePlay + "," + int.Parse(csv[1]) + "," + int.Parse(csv[2]) + "," + GameResponses.playerTwo, gs.playerID1);
                 temp = GameResponses.playerTwo;
             }
@@ -215,6 +215,26 @@ public class NetworkedServer : MonoBehaviour
             {
                 SendMessageToClient(ServerToClientSignifiers.lookforGameResponses + "," + lookforGameResponses.Fail, id);
             }
+        }
+        else if (signifier == ClientToServerSignifiers.matchIsOver)
+        {
+            GameSession gs = FindGameSessionWithPlayersID(id);
+            if (gs.playerID1 == id)
+            {
+                SendMessageToClient(ServerToClientSignifiers.matchIsOver + "," + int.Parse(csv[1]), gs.playerID2);
+            }
+            else if (gs.playerID2 == id)
+            {
+                SendMessageToClient(ServerToClientSignifiers.matchIsOver + "," + int.Parse(csv[1]), gs.playerID1);
+            }
+            if (gs.observerID.Count > 0)
+            {
+                foreach (int obsID in gs.observerID)
+                {
+                    SendMessageToClient(ServerToClientSignifiers.matchIsOver + "," + int.Parse(csv[1]), obsID);
+                }
+            }
+            gameSessionList.Remove(gs);
         }
     }
 
@@ -302,6 +322,7 @@ public static class ClientToServerSignifiers
 
     public const int lookForGameToWatch = 6;
 
+    public const int matchIsOver = 7;
 }
 
 public static class ServerToClientSignifiers
@@ -317,6 +338,8 @@ public static class ServerToClientSignifiers
     public const int messagingAnotherPlayer = 5;
 
     public const int lookforGameResponses = 6;
+
+    public const int matchIsOver = 7;
 
 }
 
