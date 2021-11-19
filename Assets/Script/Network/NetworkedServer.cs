@@ -221,7 +221,13 @@ public class NetworkedServer : MonoBehaviour
             GameSession gs = FindGameSessionWithPlayersID(int.Parse(csv[1]));
             if(gs != null)
             {
-                SendMessageToClient(ServerToClientSignifiers.lookforGameResponses + "," + lookforGameResponses.Success, id);
+                string currentmoves = "";
+                for (int i = 0; i < gs.currentGameRecord.turnAndMove.Count; i++)
+                {
+                    currentmoves = currentmoves + gs.currentGameRecord.turnAndMove[i] + ",";
+                }
+                
+                SendMessageToClient(ServerToClientSignifiers.lookforGameResponses + "," + lookforGameResponses.Success + "," + currentmoves, id);
                 gs.addObserver(id);
             }
             else
