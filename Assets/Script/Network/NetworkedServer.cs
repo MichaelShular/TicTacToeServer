@@ -250,6 +250,11 @@ public class NetworkedServer : MonoBehaviour
             SaveGame(gs);
             gameSessionList.Remove(gs);
         }
+        else if (signifier == ClientToServerSignifiers.findReplay)
+        {
+            string gs = LoadGame(csv[1]);
+            SendMessageToClient(ServerToClientSignifiers.sendReplay + "," + gs, id);
+        }
     }
 
     private void SavePlayerAccount()
@@ -310,9 +315,11 @@ public class NetworkedServer : MonoBehaviour
         }
         return 1;
     }
-    private gameRecord LoadGame(string ID)
+    private string LoadGame(string ID)
     {
-        gameRecord temp;
+        //gameRecord temp;
+        string returingString;
+        returingString = "";
         if (File.Exists(playerAccountFilePath))
         {
             StreamReader sr = new StreamReader(gameAccountFilePath);
@@ -324,13 +331,14 @@ public class NetworkedServer : MonoBehaviour
 
                 if(csv[0] == ID)
                 {
-                    temp = new gameRecord(ID);
+                    //temp = new gameRecord(ID);
                     for (int i = 1; i < (csv.Length - 1); i++)
                     {
                         Debug.Log(csv[i]);
-                        temp.turnAndMove.Add(csv[i]);
+                        //temp.turnAndMove.Add(csv[i]);
+                        returingString += csv[i].ToString() + ",";
                     }                    
-                    return temp;
+                    return returingString;
                 }                
             }
         }
@@ -408,6 +416,8 @@ public static class ClientToServerSignifiers
     public const int lookForGameToWatch = 6;
 
     public const int matchIsOver = 7;
+
+    public const int findReplay = 8;
 }
 
 public static class ServerToClientSignifiers
@@ -425,6 +435,8 @@ public static class ServerToClientSignifiers
     public const int lookforGameResponses = 6;
 
     public const int matchIsOver = 7;
+
+    public const int sendReplay = 8;
 
 }
 
